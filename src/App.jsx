@@ -5,6 +5,8 @@ import './App.css'
 
 function App () {
   const [count, setCount] = useState(0)
+  const [creatingGame, setCreatingGame] = useState(false)
+  const [joiningGame, setJoiningGame] = useState(false)
 
   return (
     <>
@@ -29,10 +31,33 @@ function App () {
         Click on the Vite and React logos to learn more
       </p> */}
       <h1>Welcome to Wyrmspan</h1>
-      <form>
-        <label>Create a game</label>
-        <input type='text' />
-      </form>
+      {!creatingGame && !joiningGame ? (
+        <div>
+          <button type='button' onClick={() => setCreatingGame(true)}>
+            Create a game
+          </button>
+          <span> or </span>
+          <button type='button' onClick={() => setJoiningGame(true)}>
+            Join a game
+          </button>
+        </div>
+      ) : (
+        <div>
+          <a
+            onClick={() => {
+              setCreatingGame(false)
+              setJoiningGame(false)
+            }}
+          >
+            back
+          </a>
+        </div>
+      )}
+      {creatingGame && (
+        <div>
+          <h2>Create new Game</h2>
+        </div>
+      )}
     </>
   )
 }
