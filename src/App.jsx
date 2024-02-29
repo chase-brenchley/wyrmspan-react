@@ -55,7 +55,12 @@ function App () {
       )}
       {creatingGame && (
         <div>
-          <h2>Create new Game</h2>
+          <h2>Game Lobby</h2>
+        </div>
+      )}
+      {joiningGame && (
+        <div>
+          <h2>Join game</h2>
         </div>
       )}
     </>
