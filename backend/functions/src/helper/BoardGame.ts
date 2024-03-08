@@ -1,13 +1,22 @@
 export class BoardGame {
   private state: object
 
-  constructor (numPlayers: number) {
+  constructor () {
     this.state = {
-      numPlayers: numPlayers
+      numPlayers: 0,
+      gameStarted: false
     }
   }
 
   public printBoard (): string {
     return JSON.stringify(this.state)
+  }
+
+  public static transformToFirestore (
+    boardGame: BoardGame
+  ): Record<string, any> {
+    return {
+      state: Object(boardGame.state)
+    }
   }
 }

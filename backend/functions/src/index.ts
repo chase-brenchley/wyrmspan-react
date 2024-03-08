@@ -7,9 +7,13 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 
-import { onRequest } from 'firebase-functions/v2/https'
+import { onRequest, onCall } from 'firebase-functions/v2/https'
 import * as logger from 'firebase-functions/logger'
-import { getFirestore } from 'firebase-admin/firestore'
+import {
+  DocumentData,
+  QueryDocumentSnapshot,
+  getFirestore
+} from 'firebase-admin/firestore'
 import { initializeApp } from 'firebase-admin/app'
 import { BoardGame } from './helper/BoardGame'
 
@@ -23,14 +27,22 @@ export const helloWorld = onRequest((request, response) => {
   response.send('Hello from Firebase!')
 })
 
-export const startGame = onRequest(async (request, response) => {
+export const startGame = onCall({}, async request => {
   logger.info('New game started')
 
-  const initialState = new BoardGame(1)
+  const initialState = new BoardGame()
 
   const document = await getFirestore()
     .collection('games')
-    .add(JSON.parse(JSON.stringify(initialState)))
+    .withConverter({
+      toFirestore (data: BoardGame): DocumentData {
+        return BoardGame.transformToFirestore(data)
+      },
+      fromFirestore (snap: QueryDocumentSnapshot): BoardGame {
+        return snap.data() as BoardGame
+      }
+    })
+    .add(initialState)
   // response will send back which collection to listen to
-  response.json({ id: document.id })
+  return { id: document.id }
 })
