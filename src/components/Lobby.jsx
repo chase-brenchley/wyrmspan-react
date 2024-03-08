@@ -6,7 +6,7 @@ function Lobby (props) {
     <div>
       <h2>Game Lobby</h2>
       <pre>{JSON.stringify(props)}</pre>
-      <h2>{props.players?.length} / 5 players</h2>
+      <h3>{props.players?.length} / 5 players</h3>
       {props.players && props.players.length && (
         <ol>
           {props.players.map((player, i) => (
