@@ -11,6 +11,7 @@ import { onRequest, onCall } from 'firebase-functions/v2/https'
 import * as logger from 'firebase-functions/logger'
 import {
   DocumentData,
+  FieldValue,
   QueryDocumentSnapshot,
   getFirestore
 } from 'firebase-admin/firestore'
@@ -30,7 +31,7 @@ export const helloWorld = onRequest((request, response) => {
 export const startGame = onCall({}, async request => {
   logger.info('New game started')
 
-  const initialState = new BoardGame()
+  const initialState = new BoardGame('test relpace with actual value later')
 
   const document = await getFirestore()
     .collection('games')
@@ -45,4 +46,19 @@ export const startGame = onCall({}, async request => {
     .add(initialState)
   // response will send back which collection to listen to
   return { id: document.id }
+})
+
+export const tryJoinGame = onCall({}, async request => {
+  if (request.data.gameId) {
+    const { gameId, player } = request.data
+
+    const document = getFirestore().collection('games').doc(gameId)
+    await document.update({
+      players: FieldValue.arrayUnion(player),
+      numPlayers: FieldValue.increment(1)
+    })
+
+    return { id: document.id }
+  }
+  return 'no gameID included'
 })

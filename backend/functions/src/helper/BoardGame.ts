@@ -1,11 +1,13 @@
 export class BoardGame {
   private state: object
+  private numPlayers: number
+  private gameStarted: boolean
+  private players: string[]
 
-  constructor () {
-    this.state = {
-      numPlayers: 0,
-      gameStarted: false
-    }
+  constructor (creator: string) {
+    this.state = {}
+    ;(this.numPlayers = 1), (this.gameStarted = false)
+    this.players = [creator]
   }
 
   public printBoard (): string {
@@ -16,7 +18,10 @@ export class BoardGame {
     boardGame: BoardGame
   ): Record<string, any> {
     return {
-      state: Object(boardGame.state)
+      state: Object(boardGame.state),
+      numPlayers: Number(boardGame.numPlayers),
+      gameStarted: Boolean(boardGame.gameStarted),
+      players: Array(boardGame.players)
     }
   }
 }

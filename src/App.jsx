@@ -1,12 +1,21 @@
 import { useEffect, useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
+
+import Lobby from './components/Lobby'
 
 // Import the functions you need from the SDKs you need
 import { initializeApp } from 'firebase/app'
-import { getFirestore, doc, onSnapshot } from 'firebase/firestore'
+import {
+  getFirestore,
+  doc,
+  onSnapshot,
+  query,
+  where,
+  getDocs,
+  collection
+} from 'firebase/firestore'
 import { getFunctions, httpsCallable } from 'firebase/functions'
+import LobbyList from './components/LobbyList'
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -30,15 +39,25 @@ function App () {
   const [creatingGame, setCreatingGame] = useState(false)
   const [joiningGame, setJoiningGame] = useState(false)
   const [gameId, setGameId] = useState(null)
-  const [gameState, setGameState] = useState(null)
+  // const [gameState, setGameState] = useState(null)
+  const [gameState, setGameState] = useState({
+    state: {},
+    numPlayers: 1,
+    gameStarted: false,
+    players: ['Chase']
+  })
+  // const [openLobbies, setOpenLobbies] = useState(null)
+  const [openLobbies, setOpenLobbies] = useState([
+    { id: '51TKkE4bNBOjiIhfpeCU', numPlayers: 2 }
+  ])
 
   useEffect(() => {
-    console.log('in the useeffect')
     if (gameId) {
       console.log('there was a game id')
       const unsubscribe = onSnapshot(doc(db, 'games', gameId), doc => {
         const source = doc.metadata.hasPendingWrites ? 'local' : 'server'
         console.log(source, ' data: ', doc.data())
+        setGameState(doc.data())
       })
 
       return () => {
@@ -53,6 +72,31 @@ function App () {
     const res = await startGame()
     setGameId(res.data.id)
     console.log(res)
+  }
+
+  const handleStartJoinGame = async () => {
+    setJoiningGame(true)
+
+    const q = query(collection(db, 'games'), where('gameStarted', '==', false))
+    const snapshot = await getDocs(q)
+
+    const lobbies = []
+    snapshot.forEach(doc => {
+      lobbies.push({
+        id: doc.id,
+        ...doc.data()
+      })
+    })
+
+    setOpenLobbies(lobbies)
+  }
+
+  const handleJoinGame = async gameId => {
+    console.log('joining ', gameId)
+    const tryJoinGame = httpsCallable(functions, 'tryJoinGame')
+    const res = await tryJoinGame({ gameId, player: 'Justin' })
+    setGameId(res.data.id)
+    setJoiningGame(false)
   }
 
   return (
@@ -78,13 +122,13 @@ function App () {
         Click on the Vite and React logos to learn more
       </p> */}
       <h1>Welcome to Wyrmspan</h1>
-      {!creatingGame && !joiningGame ? (
+      {!creatingGame && !joiningGame && !gameId ? (
         <div>
           <button type='button' onClick={handleStartNewGame}>
             Create a game
           </button>
           <span> or </span>
-          <button type='button' onClick={() => setJoiningGame(true)}>
+          <button type='button' onClick={handleStartJoinGame}>
             Join a game
           </button>
         </div>
@@ -94,21 +138,16 @@ function App () {
             onClick={() => {
               setCreatingGame(false)
               setJoiningGame(false)
+              setGameId(null)
             }}
           >
             back
           </a>
         </div>
       )}
-      {creatingGame && (
-        <div>
-          <h2>Game Lobby</h2>
-        </div>
-      )}
+      {(creatingGame || gameId) && <Lobby {...gameState} />}
       {joiningGame && (
-        <div>
-          <h2>Join game</h2>
-        </div>
+        <LobbyList openLobbies={openLobbies} joinGameHandler={handleJoinGame} />
       )}
     </>
   )
